@@ -1,0 +1,165 @@
+Sub Stocks()
+
+  
+  
+    Dim ws As Worksheet
+    Set ws = ThisWorkbook.Sheets("Q1")
+    
+    Dim QuarterlyOpen As Double
+    Dim QuarterlyClose As Double
+    Dim QuarterlyChange As Double
+    Dim PercentChange As Double
+    Dim TotalStockVolume As Double
+    Dim i As Long
+    Dim Ticker As String
+    Dim j As Integer
+    Dim Start As Long
+    Dim p As Long
+    Dim n As Long
+    Dim lastRowPC As Double
+    Dim lastRowTS As Double
+    Dim maxRow As Long
+    Dim maxRowTS As Long
+    Dim minRow As Long
+    Dim maxValue As Double
+    Dim maxValueTS As Double
+    Dim minValue As Double
+    Dim TickerTS As String
+    
+  ' Loop through each worksheet
+    For Each ws In ThisWorkbook.Worksheets
+    
+  
+  ' add headers to new columns
+    ws.Cells(1, 9) = "Ticker"
+    ws.Cells(1, 10).Value = "Quarterly Change"
+    ws.Cells(1, 11).Value = "Percent Change"
+    ws.Cells(1, 12).Value = "Total Stock Volume"
+        Dim lastRow As Long
+        lastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+        
+        Dim Quarterly_Change_Row As Long
+        Quarterly_Change_Row = 2
+        
+        Dim TotalStockVolumeRow As Long
+        TotalStockVolumeRow = 2
+        TotalStockVolume = 0
+        QuarterlyChange = 0
+        Start = 2
+        j = 0
+    
+  
+        For i = 2 To lastRow
+    
+            If ws.Cells(i + 1, 1).Value <> ws.Cells(i, 1).Value Then
+            
+                Ticker = ws.Cells(i, 1).Value
+                ws.Range("I" & 2 + j).Value = ws.Cells(i, 1).Value
+                
+                QuarterlyOpen = ws.Cells(Start, 3)
+                QuarterlyClose = ws.Cells(i, 6)
+                
+                TotalStockVolume = TotalStockVolume + ws.Cells(i, 7).Value
+            
+                If TotalStockVolume = 0 Then
+                    ws.Range("I" & 2 + j).Value = ws.Cells(i, 1).Value
+                    ws.Range("J" & 2 + j).Value = 0
+                    ws.Range("K" & 2 + j).Value = 0
+                    ws.Range("L" & 2 + j).Value = 0
+                Else
+                    If ws.Cells(Start, 3) = 0 Then
+                        For Find = Start To i
+                            If ws.Cells(Find, 3).Value <> 0 Then
+                                Start = Find
+                                Exit For
+                        End If
+                    Next Find
+                End If
+                
+                            
+                QuarterlyOpen = ws.Cells(Start, 3)
+                QuarterlyClose = ws.Cells(i, 6)
+            
+                QuarterlyChange = QuarterlyClose - QuarterlyOpen
+                ws.Range("J" & 2 + j).Value = QuarterlyChange
+                      
+                PercentChange = QuarterlyChange / QuarterlyOpen
+                ws.Range("K" & 2 + j).Value = PercentChange
+                ws.Range("K" & 2 + j).NumberFormat = "0.00%"
+                Start = i + 1
+                ws.Range("L" & 2 + j).Value = TotalStockVolume
+            End If
+         
+            TotalStockVolume = 0
+            QuarterlyChange = 0
+            j = j + 1
+         
+        Else
+            TotalStockVolume = TotalStockVolume + ws.Cells(i, 7).Value
+        
+        End If
+     
+ 
+    Next i
+ 
+       
+        Quarterly_Change_LastRow = ws.Cells(Rows.Count, 9).End(xlUp).Row
+        
+        'Colors Conditionals
+        For p = 2 To Quarterly_Change_LastRow
+        
+        If (ws.Cells(p, 10).Value > 0) Then
+            ws.Cells(p, 10).Interior.ColorIndex = 10
+        ElseIf ws.Cells(p, 10).Value < 0 Then
+            ws.Cells(p, 10).Interior.ColorIndex = 3
+        End If
+        
+    Next p
+    
+    ws.Cells(1, 16).Value = "Ticker"
+    ws.Cells(1, 17).Value = "Value"
+    ws.Cells(2, 15).Value = "Greatest%Increase"
+    ws.Cells(3, 15).Value = "Greatest%Decrease"
+    ws.Cells(4, 15).Value = "Greatest Total Stock Volume"
+    
+    lastRowPC = ws.Cells(ws.Rows.Count, "K").End(xlUp).Row
+    lastRowTS = ws.Cells(ws.Rows.Count, "L").End(xlUp).Row
+    
+    maxValue = Application.WorksheetFunction.Max(ws.Range("K2:K" & lastRowPC))
+    minValue = Application.WorksheetFunction.Min(ws.Range("K2:K" & lastRowPC))
+    maxValueTS = Application.WorksheetFunction.Max(ws.Range("L2:L" & lastRowTS))
+    
+    'Find max Value Row
+    maxRow = Application.Match(maxValue, ws.Range("K2:K" & lastRowPC), 0) + 1
+    Ticker = ws.Cells(maxRow, 9).Value
+    maxRowTS = Application.Match(maxValueTS, ws.Range("L2:L" & lastRowTS), 0) + 1
+    TickerTS = ws.Cells(maxRowTS, 9).Value
+    
+   'Populate Ticker and value for Max
+    ws.Cells(2, 16).Value = Ticker ' Cell P2
+    ws.Cells(2, 17).Value = maxValue ' Cell Q2
+    ws.Cells(4, 16).Value = TickerTS ' Cell P4
+    ws.Cells(4, 17).Value = maxValueTS ' Cell Q4
+    
+    'Find min Value Row
+    minRow = Application.Match(minValue, ws.Range("K2:K" & lastRowPC), 0) + 1
+    Ticker = ws.Cells(minRow, 9).Value
+    
+    'Populate Ticker and Value for Min
+    ws.Cells(3, 16).Value = Ticker ' Cell P2
+    ws.Cells(3, 17).Value = minValue ' Cell Q2
+    
+    ws.Cells(2, 17).NumberFormat = "0.00%"
+    ws.Cells(3, 17).NumberFormat = "0.00%"
+    
+    ws.Range("I:Q").EntireColumn.AutoFit
+    ws.Range("I1:Q1").Font.Bold = True
+    ws.Range("O2:O4").Font.Bold = True
+
+    
+Next ws
+
+End Sub
+
+
+
